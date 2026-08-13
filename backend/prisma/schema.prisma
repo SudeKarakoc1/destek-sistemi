@@ -11,6 +11,29 @@ datasource db {
 }
 
 // ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+  SUPPORT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// ─────────────────────────────────────────────
 // User Model
 // ─────────────────────────────────────────────
 
@@ -22,11 +45,26 @@ model User {
   role         Role     @default(USER)
   createdAt    DateTime @default(now())
 
+  tickets      Ticket[]
+
   @@map("users")
 }
 
-enum Role {
-  USER
-  ADMIN
-  SUPPORT
+// ─────────────────────────────────────────────
+// Ticket Model
+// ─────────────────────────────────────────────
+
+model Ticket {
+  id          Int          @id @default(autoincrement())
+  userId      Int
+  user        User         @relation(fields: [userId], references: [id])
+  title       String
+  description String       @db.Text
+  status      TicketStatus @default(OPEN)
+  category    String
+  priority    Priority     @default(MEDIUM)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("tickets")
 }
