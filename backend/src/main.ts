@@ -6,6 +6,13 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Admin panel (localhost:5173) için CORS
+  app.enableCors({
+    origin: ['http://localhost:5173'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
   // Global exception filter — tüm hataları tutarlı JSON formatında döndürür
   app.useGlobalFilters(new AllExceptionsFilter());
 
