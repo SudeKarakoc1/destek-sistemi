@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { statusLabels, priorityLabels, label } from '../utils/labels';
 
 interface Ticket {
   id: number;
@@ -121,7 +122,7 @@ export default function TicketsPage() {
                               statusColor[ticket.status] ?? 'bg-gray-100 text-gray-600'
                             }`}
                           >
-                            {ticket.status}
+                            {label(statusLabels, ticket.status)}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -130,7 +131,7 @@ export default function TicketsPage() {
                               priorityColor[ticket.priority] ?? 'bg-gray-100 text-gray-600'
                             }`}
                           >
-                            {ticket.priority}
+                            {label(priorityLabels, ticket.priority)}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-gray-600">{ticket.category}</td>

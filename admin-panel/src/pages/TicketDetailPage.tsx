@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import api from '../services/api';
+import { statusLabels, priorityLabels, label } from '../utils/labels';
 
 interface TicketDetail {
   id: number;
@@ -129,14 +130,14 @@ export default function TicketDetailPage() {
                         statusColor[ticket.status] ?? 'bg-gray-100 text-gray-600'
                       }`}
                     >
-                      {ticket.status}
+                      {label(statusLabels, ticket.status)}
                     </span>
                   </div>
                 </div>
 
                 <div>
                   <span className="text-xs text-gray-400 uppercase font-medium">Öncelik</span>
-                  <p className="text-gray-700 mt-0.5">{ticket.priority}</p>
+                  <p className="text-gray-700 mt-0.5">{label(priorityLabels, ticket.priority)}</p>
                 </div>
 
                 <div>
@@ -179,7 +180,7 @@ export default function TicketDetailPage() {
                 >
                   {STATUS_OPTIONS.map((s) => (
                     <option key={s} value={s}>
-                      {s}
+                      {label(statusLabels, s)}
                     </option>
                   ))}
                 </select>
