@@ -106,7 +106,11 @@ export default function TicketsPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {tickets.map((ticket) => (
-                      <tr key={ticket.id} className="hover:bg-gray-50 transition">
+                      <tr
+                        key={ticket.id}
+                        onClick={() => navigate(`/tickets/${ticket.id}`)}
+                        className="hover:bg-gray-50 transition cursor-pointer"
+                      >
                         <td className="px-4 py-3 text-gray-400">{ticket.id}</td>
                         <td className="px-4 py-3 font-medium text-gray-800">
                           {ticket.title}
