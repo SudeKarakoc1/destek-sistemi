@@ -42,109 +42,116 @@ export default function TicketsPage() {
     navigate('/login', { replace: true });
   };
 
-  // ─── Status & Priority badge renkleri ───────────────────────────
+  // ─── Status & Priority badge renkleri (nötr palet) ───────────────
   const statusColor: Record<string, string> = {
-    OPEN: 'bg-blue-100 text-blue-800',
-    IN_PROGRESS: 'bg-yellow-100 text-yellow-800',
-    CLOSED: 'bg-gray-100 text-gray-600',
-    RESOLVED: 'bg-green-100 text-green-700',
+    OPEN:        'bg-gray-100 text-gray-700',
+    IN_PROGRESS: 'bg-gray-800 text-gray-100',
+    RESOLVED:    'bg-gray-200 text-gray-600',
+    CLOSED:      'bg-gray-100 text-gray-400',
   };
 
   const priorityColor: Record<string, string> = {
-    LOW: 'bg-green-100 text-green-700',
-    MEDIUM: 'bg-yellow-100 text-yellow-800',
-    HIGH: 'bg-orange-100 text-orange-700',
-    CRITICAL: 'bg-red-100 text-red-700',
+    LOW:      'bg-gray-100 text-gray-500',
+    MEDIUM:   'bg-gray-200 text-gray-700',
+    HIGH:     'bg-gray-700 text-gray-100',
+    CRITICAL: 'bg-gray-900 text-white',
   };
 
   // ─── Render ─────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50">
+
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-800">Destek Talepleri</h1>
+      <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <h1 className="text-base font-semibold text-gray-900">Destek Talepleri</h1>
         <button
           onClick={handleLogout}
-          className="text-sm text-red-600 hover:text-red-800 border border-red-300 hover:border-red-500 px-3 py-1 rounded transition"
+          className="text-sm text-gray-600 border border-gray-200 hover:bg-gray-50 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
         >
           Çıkış Yap
         </button>
       </header>
 
       {/* Content */}
-      <main className="p-6">
+      <main className="px-8 py-8">
+
+        {/* Yükleniyor */}
         {loading && (
-          <p className="text-gray-500 text-sm">Yükleniyor...</p>
+          <p className="text-sm text-gray-400 text-center py-12">Yükleniyor...</p>
         )}
 
+        {/* Hata */}
         {error && (
-          <p className="text-red-500 text-sm bg-red-50 border border-red-200 rounded px-4 py-3">
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
             {error}
-          </p>
+          </div>
         )}
 
         {!loading && !error && (
           <>
-            <p className="text-sm text-gray-500 mb-4">
-              Toplam {tickets.length} talep bulundu.
+            {/* Özet */}
+            <p className="text-xs text-gray-400 mb-4">
+              Toplam {tickets.length} talep
             </p>
 
             {tickets.length === 0 ? (
-              <p className="text-gray-400 text-sm">Henüz hiç talep yok.</p>
+              <p className="text-sm text-gray-400 text-center py-12">
+                Henüz hiç talep yok.
+              </p>
             ) : (
-              <div className="overflow-x-auto rounded border border-gray-200 bg-white">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-                    <tr>
-                      <th className="px-4 py-3">#</th>
-                      <th className="px-4 py-3">Başlık</th>
-                      <th className="px-4 py-3">Durum</th>
-                      <th className="px-4 py-3">Öncelik</th>
-                      <th className="px-4 py-3">Kategori</th>
-                      <th className="px-4 py-3">Oluşturan</th>
-                      <th className="px-4 py-3">Tarih</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {tickets.map((ticket) => (
-                      <tr
-                        key={ticket.id}
-                        onClick={() => navigate(`/tickets/${ticket.id}`)}
-                        className="hover:bg-gray-50 transition cursor-pointer"
-                      >
-                        <td className="px-4 py-3 text-gray-400">{ticket.id}</td>
-                        <td className="px-4 py-3 font-medium text-gray-800">
-                          {ticket.title}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                              statusColor[ticket.status] ?? 'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            {label(statusLabels, ticket.status)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                              priorityColor[ticket.priority] ?? 'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            {label(priorityLabels, ticket.priority)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-600">{ticket.category}</td>
-                        <td className="px-4 py-3 text-gray-600">
-                          {ticket.user?.name ?? '—'}
-                        </td>
-                        <td className="px-4 py-3 text-gray-400">
-                          {new Date(ticket.createdAt).toLocaleDateString('tr-TR')}
-                        </td>
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  <table className="w-full text-sm text-left">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">#</th>
+                        <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Başlık</th>
+                        <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Durum</th>
+                        <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Öncelik</th>
+                        <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Kategori</th>
+                        <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Oluşturan</th>
+                        <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Tarih</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {tickets.map((ticket) => (
+                        <tr
+                          key={ticket.id}
+                          onClick={() => navigate(`/tickets/${ticket.id}`)}
+                          className="hover:bg-gray-50 transition-colors cursor-pointer align-middle"
+                        >
+                          <td className="px-5 py-4 text-gray-400 text-sm align-middle">{ticket.id}</td>
+                          <td className="px-5 py-4 font-medium text-gray-900 text-base align-middle">
+                            {ticket.title}
+                          </td>
+                          <td className="px-5 py-4 align-middle">
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                statusColor[ticket.status] ?? 'bg-gray-100 text-gray-600'
+                              }`}
+                            >
+                              {label(statusLabels, ticket.status)}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 align-middle">
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                priorityColor[ticket.priority] ?? 'bg-gray-100 text-gray-600'
+                              }`}
+                            >
+                              {label(priorityLabels, ticket.priority)}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-gray-500 text-base align-middle">{ticket.category}</td>
+                          <td className="px-5 py-4 text-gray-500 text-base align-middle">
+                            {ticket.user?.name ?? '—'}
+                          </td>
+                          <td className="px-5 py-4 text-gray-500 text-sm align-middle">
+                            {new Date(ticket.createdAt).toLocaleDateString('tr-TR')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
               </div>
             )}
           </>
