@@ -6,12 +6,16 @@ import {
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
+  ActivityIndicator,
   Platform,
   StyleSheet,
 } from 'react-native';
+import { AxiosError } from 'axios';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { Priority } from '../types/ticket';
+import api from '../services/api';
+import { translateErrorMessage } from '../utils/errorMessages';
 
 type Category = 'Donanım' | 'Yazılım' | 'Ağ/Bağlantı' | 'Hesap/Şifre' | 'Diğer';
 
@@ -38,16 +42,47 @@ export default function CreateTicketScreen({ navigation }: Props) {
   const [customCategory, setCustomCategory] = useState('');
   const [priority, setPriority] = useState<Priority>('MEDIUM');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim() || !description.trim()) {
       setError('Başlık ve açıklama zorunludur');
       return;
     }
     setError('');
-    // TODO: gerçek POST isteği API bağlanınca buraya eklenecek
-    navigation.navigate('Tickets');
+
+    // "Diğer" seçiliyse kullanıcının yazdığı değeri kullan
+    const categoryValue =
+      category === 'Diğer'
+        ? customCategory.trim() || 'Diğer'
+        : category;
+
+    setIsSubmitting(true);
+    try {
+      await api.post('/tickets', {
+        title: title.trim(),
+        description: description.trim(),
+        category: categoryValue,
+        priority,
+      });
+
+      setSuccessMessage('Talep oluşturuldu ✓');
+      // 900ms sonra Tickets ekranına dön (stack'te birikmemesi için navigate)
+      setTimeout(() => {
+        navigation.navigate('Tickets');
+      }, 900);
+    } catch (err: unknown) {
+      console.error('[CreateTicketScreen] Talep oluşturulamadı:', err);
+      const axiosError = err as AxiosError<{ message?: string | string[] }>;
+      const raw = axiosError.response?.data?.message ?? 'Talep oluşturulamadı. Lütfen tekrar deneyin.';
+      setError(translateErrorMessage(raw));
+      setIsSubmitting(false);
+    }
+    // isSubmitting, başarılı durumda navigate olunana kadar true kalır
   };
+
+  const isDisabled = isSubmitting || successMessage !== null;
 
   return (
     <KeyboardAvoidingView
@@ -69,6 +104,7 @@ export default function CreateTicketScreen({ navigation }: Props) {
           placeholderTextColor="#A0A0A0"
           value={title}
           onChangeText={(v) => { setTitle(v); setError(''); }}
+          editable={!isDisabled}
         />
 
         {/* Açıklama */}
@@ -82,6 +118,7 @@ export default function CreateTicketScreen({ navigation }: Props) {
           textAlignVertical="top"
           value={description}
           onChangeText={(v) => { setDescription(v); setError(''); }}
+          editable={!isDisabled}
         />
 
         {/* Kategori */}
@@ -93,8 +130,9 @@ export default function CreateTicketScreen({ navigation }: Props) {
               <TouchableOpacity
                 key={cat}
                 style={[styles.chip, selected && styles.chipSelected]}
-                onPress={() => setCategory(cat)}
+                onPress={() => !isDisabled && setCategory(cat)}
                 activeOpacity={0.75}
+                disabled={isDisabled}
               >
                 <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
                   {cat}
@@ -110,6 +148,7 @@ export default function CreateTicketScreen({ navigation }: Props) {
             placeholderTextColor="#A0A0A0"
             value={customCategory}
             onChangeText={setCustomCategory}
+            editable={!isDisabled}
           />
         )}
 
@@ -127,8 +166,9 @@ export default function CreateTicketScreen({ navigation }: Props) {
                     ? { backgroundColor: opt.color, borderColor: opt.color }
                     : { borderColor: opt.color },
                 ]}
-                onPress={() => setPriority(opt.value)}
+                onPress={() => !isDisabled && setPriority(opt.value)}
                 activeOpacity={0.75}
+                disabled={isDisabled}
               >
                 <Text
                   style={[
@@ -148,13 +188,23 @@ export default function CreateTicketScreen({ navigation }: Props) {
           <Text style={styles.errorText}>{error}</Text>
         )}
 
+        {/* Başarı mesajı */}
+        {successMessage !== null && (
+          <Text style={styles.successText}>{successMessage}</Text>
+        )}
+
         {/* Gönder butonu */}
         <TouchableOpacity
-          style={styles.submitButton}
+          style={[styles.submitButton, isDisabled && styles.submitButtonDisabled]}
           onPress={handleSubmit}
           activeOpacity={0.8}
+          disabled={isDisabled}
         >
-          <Text style={styles.submitButtonText}>Talep oluştur</Text>
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : (
+            <Text style={styles.submitButtonText}>Talep oluştur</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -254,12 +304,22 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
   },
+  successText: {
+    color: '#14B8A6',
+    fontSize: 14,
+    fontFamily: 'Manrope_600SemiBold',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
   submitButton: {
     backgroundColor: '#14B8A6',
     borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 4,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
   },
   submitButtonText: {
     color: '#FFFFFF',

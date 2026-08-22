@@ -4,19 +4,59 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
 } from 'react-native';
+import { AxiosError } from 'axios';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
+import { useAuth } from '../context/AuthContext';
+import { translateErrorMessage } from '../utils/errorMessages';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
 export default function RegisterScreen({ navigation }: Props) {
+  const { register } = useAuth();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleRegister = async () => {
+    setErrorMessage(null);
+
+    // Basit validasyon
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setErrorMessage('Tüm alanlar doldurulmalıdır.');
+      return;
+    }
+    if (!email.includes('@')) {
+      setErrorMessage('Lütfen geçerli bir email adresi girin.');
+      return;
+    }
+    if (password.trim().length < 6) {
+      setErrorMessage('Şifre en az 6 karakter olmalı.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await register(name.trim(), email.trim(), password);
+      // Başarılıysa navigate gerekmez — register() içinde login() çağrılır,
+      // AppNavigator token değişimini algılayarak otomatik yönlendirir.
+    } catch (error: unknown) {
+      console.error('[RegisterScreen] Kayıt hatası:', error);
+      const axiosError = error as AxiosError<{ message?: string | string[] }>;
+      const raw = axiosError.response?.data?.message ?? 'Kayıt işlemi başarısız. Lütfen tekrar deneyin.';
+      setErrorMessage(translateErrorMessage(raw));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -31,7 +71,8 @@ export default function RegisterScreen({ navigation }: Props) {
           placeholder="Ad Soyad"
           placeholderTextColor="#A0A0A0"
           value={name}
-          onChangeText={setName}
+          onChangeText={(v) => { setName(v); setErrorMessage(null); }}
+          editable={!isSubmitting}
         />
 
         <TextInput
@@ -41,7 +82,8 @@ export default function RegisterScreen({ navigation }: Props) {
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(v) => { setEmail(v); setErrorMessage(null); }}
+          editable={!isSubmitting}
         />
 
         <TextInput
@@ -50,15 +92,26 @@ export default function RegisterScreen({ navigation }: Props) {
           placeholderTextColor="#A0A0A0"
           secureTextEntry
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(v) => { setPassword(v); setErrorMessage(null); }}
+          editable={!isSubmitting}
         />
+        <Text style={styles.hintText}>Şifre en az 6 karakter olmalı</Text>
+
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
 
         <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Tickets')}
+          style={[styles.button, isSubmitting && styles.buttonDisabled]}
+          onPress={handleRegister}
           activeOpacity={0.8}
+          disabled={isSubmitting}
         >
-          <Text style={styles.buttonText}>Kayıt ol</Text>
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : (
+            <Text style={styles.buttonText}>Kayıt ol</Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.footer}>
@@ -110,10 +163,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Manrope_600SemiBold',
+  },
+  errorText: {
+    width: '100%',
+    color: '#F87171',
+    fontSize: 13,
+    fontFamily: 'Manrope_400Regular',
+    marginBottom: 8,
+    marginTop: -4,
+  },
+  hintText: {
+    width: '100%',
+    color: '#6B7280',
+    fontSize: 12,
+    fontFamily: 'Manrope_400Regular',
+    marginTop: -10,
+    marginBottom: 16,
   },
   footer: {
     flexDirection: 'row',

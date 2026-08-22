@@ -1,9 +1,17 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+} from 'react-native';
+import { AxiosError } from 'axios';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
-import { Priority, Status } from '../types/ticket';
-import { mockTickets } from '../data/mockTickets';
+import { Ticket, Priority, Status } from '../types/ticket';
+import api from '../services/api';
 
 const PRIORITY_COLORS: Record<Priority, string> = {
   LOW: '#6B7280',
@@ -36,18 +44,61 @@ const MONTH_NAMES = [
   'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
 ];
 
+/** ISO datetime veya date string'ini Türkçe okunabilir formata çevirir */
 function formatDate(isoDate: string): string {
-  const [year, month, day] = isoDate.split('-').map(Number);
-  return `${day} ${MONTH_NAMES[month - 1]} ${year}`;
+  const date = new Date(isoDate);
+  const day = date.getDate();
+  const month = MONTH_NAMES[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
 }
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TicketDetail'>;
 
 export default function TicketDetailScreen({ route }: Props) {
   const { id } = route.params;
-  const ticket = mockTickets.find((t) => t.id === id);
 
-  if (!ticket) {
+  const [ticket, setTicket] = useState<Ticket | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isNotFound, setIsNotFound] = useState(false);
+
+  const fetchTicket = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    setIsNotFound(false);
+
+    try {
+      const response = await api.get<Ticket>(`/tickets/${id}`);
+      setTicket(response.data);
+    } catch (error: unknown) {
+      console.error('[TicketDetailScreen] Talep yüklenemedi:', error);
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 404) {
+        setIsNotFound(true);
+      } else {
+        setErrorMessage('Talep yüklenemedi.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchTicket();
+  }, [fetchTicket]);
+
+  // ---------- Yükleniyor ----------
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color="#14B8A6" size="large" />
+      </View>
+    );
+  }
+
+  // ---------- Bulunamadı (404) ----------
+  if (isNotFound) {
     return (
       <View style={styles.screen}>
         <View style={styles.notFoundContainer}>
@@ -57,6 +108,23 @@ export default function TicketDetailScreen({ route }: Props) {
     );
   }
 
+  // ---------- Genel hata ----------
+  if (errorMessage || !ticket) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>{errorMessage ?? 'Talep yüklenemedi.'}</Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={fetchTicket}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.retryButtonText}>Tekrar dene</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // ---------- Başarılı ----------
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -97,6 +165,13 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#121212',
+  },
+  centered: {
+    flex: 1,
+    backgroundColor: '#121212',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
   },
   content: {
     padding: 20,
@@ -150,6 +225,24 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope_400Regular',
     color: '#FFFFFF',
   },
+  errorText: {
+    color: '#F87171',
+    fontSize: 16,
+    fontFamily: 'Manrope_400Regular',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#14B8A6',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'Manrope_600SemiBold',
+  },
   notFoundContainer: {
     flex: 1,
     alignItems: 'center',
@@ -161,3 +254,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope_400Regular',
   },
 });
+
