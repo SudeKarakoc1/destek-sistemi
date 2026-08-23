@@ -15,6 +15,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { Priority } from '../types/ticket';
 import api from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 import { translateErrorMessage } from '../utils/errorMessages';
 
 type Category = 'Donanım' | 'Yazılım' | 'Ağ/Bağlantı' | 'Hesap/Şifre' | 'Diğer';
@@ -36,6 +37,8 @@ const PRIORITY_OPTIONS: PriorityOption[] = [
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateTicket'>;
 
 export default function CreateTicketScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category>('Yazılım');
@@ -84,9 +87,14 @@ export default function CreateTicketScreen({ navigation }: Props) {
 
   const isDisabled = isSubmitting || successMessage !== null;
 
+  // Temaya göre input border rengi
+  const inputBorderColor = colors.card === '#F0EEE8' ? '#D0CEC8' : '#2E2E2E';
+  // Seçilmemiş chip border/metin rengi
+  const chipInactiveColor = colors.card === '#F0EEE8' ? '#9CA3AF' : '#3E3E3E';
+
   return (
     <KeyboardAvoidingView
-      style={styles.screen}
+      style={[styles.screen, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -94,25 +102,25 @@ export default function CreateTicketScreen({ navigation }: Props) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.heading}>Yeni Talep Oluştur</Text>
+        <Text style={[styles.heading, { color: colors.textPrimary }]}>Yeni Talep Oluştur</Text>
 
         {/* Başlık */}
-        <Text style={styles.label}>Başlık</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Başlık</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: inputBorderColor }]}
           placeholder="Talep başlığı"
-          placeholderTextColor="#A0A0A0"
+          placeholderTextColor={colors.textSecondary}
           value={title}
           onChangeText={(v) => { setTitle(v); setError(''); }}
           editable={!isDisabled}
         />
 
         {/* Açıklama */}
-        <Text style={styles.label}>Açıklama</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Açıklama</Text>
         <TextInput
-          style={[styles.input, styles.multilineInput]}
+          style={[styles.input, styles.multilineInput, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: inputBorderColor }]}
           placeholder="Sorunu detaylıca açıkla"
-          placeholderTextColor="#A0A0A0"
+          placeholderTextColor={colors.textSecondary}
           multiline
           numberOfLines={4}
           textAlignVertical="top"
@@ -122,19 +130,27 @@ export default function CreateTicketScreen({ navigation }: Props) {
         />
 
         {/* Kategori */}
-        <Text style={styles.label}>Kategori</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Kategori</Text>
         <View style={styles.chipGroup}>
           {CATEGORIES.map((cat) => {
             const selected = category === cat;
             return (
               <TouchableOpacity
                 key={cat}
-                style={[styles.chip, selected && styles.chipSelected]}
+                style={[
+                  styles.chip,
+                  { backgroundColor: colors.card, borderColor: chipInactiveColor },
+                  selected && { backgroundColor: colors.accent, borderColor: colors.accent },
+                ]}
                 onPress={() => !isDisabled && setCategory(cat)}
                 activeOpacity={0.75}
                 disabled={isDisabled}
               >
-                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                <Text style={[
+                  styles.chipText,
+                  { color: chipInactiveColor },
+                  selected && styles.chipTextSelected,
+                ]}>
                   {cat}
                 </Text>
               </TouchableOpacity>
@@ -143,9 +159,9 @@ export default function CreateTicketScreen({ navigation }: Props) {
         </View>
         {category === 'Diğer' && (
           <TextInput
-            style={[styles.input, styles.customCategoryInput]}
+            style={[styles.input, styles.customCategoryInput, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: inputBorderColor }]}
             placeholder="Kategoriyi yazın"
-            placeholderTextColor="#A0A0A0"
+            placeholderTextColor={colors.textSecondary}
             value={customCategory}
             onChangeText={setCustomCategory}
             editable={!isDisabled}
@@ -153,7 +169,7 @@ export default function CreateTicketScreen({ navigation }: Props) {
         )}
 
         {/* Öncelik */}
-        <Text style={styles.label}>Öncelik</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Öncelik</Text>
         <View style={styles.priorityGroup}>
           {PRIORITY_OPTIONS.map((opt) => {
             const selected = priority === opt.value;
@@ -190,12 +206,12 @@ export default function CreateTicketScreen({ navigation }: Props) {
 
         {/* Başarı mesajı */}
         {successMessage !== null && (
-          <Text style={styles.successText}>{successMessage}</Text>
+          <Text style={[styles.successText, { color: colors.accent }]}>{successMessage}</Text>
         )}
 
         {/* Gönder butonu */}
         <TouchableOpacity
-          style={[styles.submitButton, isDisabled && styles.submitButtonDisabled]}
+          style={[styles.submitButton, { backgroundColor: colors.accent }, isDisabled && styles.submitButtonDisabled]}
           onPress={handleSubmit}
           activeOpacity={0.8}
           disabled={isDisabled}
@@ -214,7 +230,6 @@ export default function CreateTicketScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#121212',
   },
   content: {
     padding: 20,
@@ -223,23 +238,18 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 26,
     fontFamily: 'Manrope_700Bold',
-    color: '#FFFFFF',
     marginBottom: 28,
   },
   label: {
     fontSize: 12,
     fontFamily: 'Manrope_600SemiBold',
-    color: '#A0A0A0',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 8,
   },
   input: {
     width: '100%',
-    backgroundColor: '#1E1E1E',
-    color: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#2E2E2E',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -261,21 +271,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   chip: {
-    backgroundColor: '#1E1E1E',
     borderWidth: 1,
-    borderColor: '#3E3E3E',
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
-  chipSelected: {
-    backgroundColor: '#14B8A6',
-    borderColor: '#14B8A6',
-  },
   chipText: {
     fontSize: 13,
     fontFamily: 'Manrope_600SemiBold',
-    color: '#A0A0A0',
   },
   chipTextSelected: {
     color: '#FFFFFF',
@@ -305,14 +308,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   successText: {
-    color: '#14B8A6',
     fontSize: 14,
     fontFamily: 'Manrope_600SemiBold',
     marginBottom: 12,
     textAlign: 'center',
   },
   submitButton: {
-    backgroundColor: '#14B8A6',
     borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',

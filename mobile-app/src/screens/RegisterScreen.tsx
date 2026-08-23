@@ -13,12 +13,14 @@ import { AxiosError } from 'axios';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { translateErrorMessage } from '../utils/errorMessages';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
 export default function RegisterScreen({ navigation }: Props) {
   const { register } = useAuth();
+  const { colors } = useTheme();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -58,27 +60,29 @@ export default function RegisterScreen({ navigation }: Props) {
     }
   };
 
+  const inputBorderColor = colors.card === '#F0EEE8' ? '#D0CEC8' : '#2E2E2E';
+
   return (
     <KeyboardAvoidingView
-      style={styles.screen}
+      style={[styles.screen, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.container}>
-        <Text style={styles.title}>Kayıt Ol</Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>Kayıt Ol</Text>
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: inputBorderColor }]}
           placeholder="Ad Soyad"
-          placeholderTextColor="#A0A0A0"
+          placeholderTextColor={colors.textSecondary}
           value={name}
           onChangeText={(v) => { setName(v); setErrorMessage(null); }}
           editable={!isSubmitting}
         />
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: inputBorderColor }]}
           placeholder="Email"
-          placeholderTextColor="#A0A0A0"
+          placeholderTextColor={colors.textSecondary}
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
@@ -87,22 +91,22 @@ export default function RegisterScreen({ navigation }: Props) {
         />
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: inputBorderColor }]}
           placeholder="Şifre"
-          placeholderTextColor="#A0A0A0"
+          placeholderTextColor={colors.textSecondary}
           secureTextEntry
           value={password}
           onChangeText={(v) => { setPassword(v); setErrorMessage(null); }}
           editable={!isSubmitting}
         />
-        <Text style={styles.hintText}>Şifre en az 6 karakter olmalı</Text>
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>Şifre en az 6 karakter olmalı</Text>
 
         {errorMessage ? (
           <Text style={styles.errorText}>{errorMessage}</Text>
         ) : null}
 
         <TouchableOpacity
-          style={[styles.button, isSubmitting && styles.buttonDisabled]}
+          style={[styles.button, { backgroundColor: colors.accent }, isSubmitting && styles.buttonDisabled]}
           onPress={handleRegister}
           activeOpacity={0.8}
           disabled={isSubmitting}
@@ -115,9 +119,9 @@ export default function RegisterScreen({ navigation }: Props) {
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Zaten hesabın var mı? </Text>
+          <Text style={[styles.footerText, { color: colors.textSecondary }]}>Zaten hesabın var mı? </Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.footerLink}>Giriş yap</Text>
+            <Text style={[styles.footerLink, { color: colors.accent }]}>Giriş yap</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -128,7 +132,6 @@ export default function RegisterScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#121212',
   },
   container: {
     flex: 1,
@@ -139,15 +142,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: 'Manrope_700Bold',
-    color: '#FFFFFF',
     marginBottom: 40,
   },
   input: {
     width: '100%',
-    backgroundColor: '#1E1E1E',
-    color: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#2E2E2E',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -157,7 +156,6 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
-    backgroundColor: '#14B8A6',
     borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',
@@ -181,7 +179,6 @@ const styles = StyleSheet.create({
   },
   hintText: {
     width: '100%',
-    color: '#6B7280',
     fontSize: 12,
     fontFamily: 'Manrope_400Regular',
     marginTop: -10,
@@ -193,12 +190,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    color: '#A0A0A0',
     fontSize: 14,
     fontFamily: 'Manrope_400Regular',
   },
   footerLink: {
-    color: '#14B8A6',
     fontSize: 14,
     fontFamily: 'Manrope_600SemiBold',
   },

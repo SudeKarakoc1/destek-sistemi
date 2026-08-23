@@ -5,9 +5,9 @@ import { AuthStackParamList, AppStackParamList } from '../types/navigation';
 import { useAuth } from '../context/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
-import TicketsScreen from '../screens/TicketsScreen';
 import TicketDetailScreen from '../screens/TicketDetailScreen';
 import CreateTicketScreen from '../screens/CreateTicketScreen';
+import TabNavigator from './TabNavigator';
 
 // Her iki stack de ayrı instance — token değişince React bunları
 // farklı component ağacı olarak algılar ve tam olarak yeniden mount eder.
@@ -24,8 +24,8 @@ export default function AppNavigator() {
   // Uygulama açılışında AsyncStorage'dan token kontrol edilirken loading göster
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#121212', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color="#14B8A6" size="large" />
+      <View style={{ flex: 1, backgroundColor: '#161616', alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color="#5c642a" size="large" />
       </View>
     );
   }
@@ -43,15 +43,29 @@ export default function AppNavigator() {
     );
   }
 
-  // Giriş yapılmış → App stack (Tickets / TicketDetail / CreateTicket)
+  // Giriş yapılmış → App stack
+  // MainTabs  : Tab navigator (Tickets / Profile / AI) — tam ekran, header yok
+  // TicketDetail / CreateTicket: Tab bar'ın üzerinde açılan stack sayfaları
   return (
     <AppStack.Navigator
-      initialRouteName="Tickets"
+      initialRouteName="MainTabs"
       screenOptions={SHARED_SCREEN_OPTIONS}
     >
-      <AppStack.Screen name="Tickets" component={TicketsScreen} />
-      <AppStack.Screen name="TicketDetail" component={TicketDetailScreen} />
-      <AppStack.Screen name="CreateTicket" component={CreateTicketScreen} />
+      <AppStack.Screen
+        name="MainTabs"
+        component={TabNavigator}
+        options={{ headerShown: false }}
+      />
+      <AppStack.Screen
+        name="TicketDetail"
+        component={TicketDetailScreen}
+        options={{ title: 'Talep Detayı' }}
+      />
+      <AppStack.Screen
+        name="CreateTicket"
+        component={CreateTicketScreen}
+        options={{ title: 'Yeni Talep' }}
+      />
     </AppStack.Navigator>
   );
 }

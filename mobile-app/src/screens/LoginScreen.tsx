@@ -13,12 +13,14 @@ import { AxiosError } from 'axios';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { translateErrorMessage } from '../utils/errorMessages';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
   const { login } = useAuth();
+  const { colors } = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,16 +56,20 @@ export default function LoginScreen({ navigation }: Props) {
 
   return (
     <KeyboardAvoidingView
-      style={styles.screen}
+      style={[styles.screen, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.container}>
-        <Text style={styles.title}>Destek Sistemi</Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>Destek Sistemi</Text>
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, {
+            backgroundColor: colors.card,
+            color: colors.textPrimary,
+            borderColor: colors.card === '#F0EEE8' ? '#D0CEC8' : '#2E2E2E',
+          }]}
           placeholder="Email"
-          placeholderTextColor="#A0A0A0"
+          placeholderTextColor={colors.textSecondary}
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
@@ -72,9 +78,13 @@ export default function LoginScreen({ navigation }: Props) {
         />
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, {
+            backgroundColor: colors.card,
+            color: colors.textPrimary,
+            borderColor: colors.card === '#F0EEE8' ? '#D0CEC8' : '#2E2E2E',
+          }]}
           placeholder="Şifre"
-          placeholderTextColor="#A0A0A0"
+          placeholderTextColor={colors.textSecondary}
           secureTextEntry
           value={password}
           onChangeText={(v) => { setPassword(v); setErrorMessage(null); }}
@@ -86,7 +96,7 @@ export default function LoginScreen({ navigation }: Props) {
         ) : null}
 
         <TouchableOpacity
-          style={[styles.button, isSubmitting && styles.buttonDisabled]}
+          style={[styles.button, { backgroundColor: colors.accent }, isSubmitting && styles.buttonDisabled]}
           onPress={handleLogin}
           activeOpacity={0.8}
           disabled={isSubmitting}
@@ -99,9 +109,9 @@ export default function LoginScreen({ navigation }: Props) {
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Hesabın yok mu? </Text>
+          <Text style={[styles.footerText, { color: colors.textSecondary }]}>Hesabın yok mu? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.footerLink}>Kayıt ol</Text>
+            <Text style={[styles.footerLink, { color: colors.accent }]}>Kayıt ol</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -112,7 +122,6 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#121212',
   },
   container: {
     flex: 1,
@@ -123,15 +132,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: 'Manrope_700Bold',
-    color: '#FFFFFF',
     marginBottom: 40,
   },
   input: {
     width: '100%',
-    backgroundColor: '#1E1E1E',
-    color: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#2E2E2E',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -141,7 +146,6 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
-    backgroundColor: '#14B8A6',
     borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',
@@ -169,12 +173,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    color: '#A0A0A0',
     fontSize: 14,
     fontFamily: 'Manrope_400Regular',
   },
   footerLink: {
-    color: '#14B8A6',
     fontSize: 14,
     fontFamily: 'Manrope_600SemiBold',
   },

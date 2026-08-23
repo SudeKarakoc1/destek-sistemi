@@ -1,19 +1,20 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { TabParamList, AppStackParamList } from '../types/navigation';
 import { Ticket, Priority, Status } from '../types/ticket';
-import { useAuth } from '../context/AuthContext';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
 
 const PRIORITY_COLORS: Record<Priority, string> = {
@@ -29,7 +30,7 @@ const PRIORITY_LABELS: Record<Priority, string> = {
 };
 
 const STATUS_COLORS: Record<Status, string> = {
-  OPEN: '#14B8A6',
+  OPEN: '#7D8355',
   IN_PROGRESS: '#F59E0B',
   RESOLVED: '#22C55E',
   CLOSED: '#6B7280',
@@ -42,10 +43,15 @@ const STATUS_LABELS: Record<Status, string> = {
   CLOSED: 'Kapatıldı',
 };
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Tickets'>;
+type Props = BottomTabScreenProps<TabParamList, 'Tickets'>;
 
-export default function TicketsScreen({ navigation }: Props) {
-  const { logout } = useAuth();
+// AppStack navigate'e erişim için parent stack navigation tipi
+type AppNavProp = NativeStackNavigationProp<AppStackParamList>;
+
+export default function TicketsScreen(_: Props) {
+  // Parent (AppStack) navigation'ı kullan — tab dışı ekranlara geçiş için
+  const navigation = useNavigation<AppNavProp>();
+  const { colors } = useTheme();
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,48 +103,15 @@ export default function TicketsScreen({ navigation }: Props) {
     }, [fetchTickets, tickets.length]),
   );
 
-  // ---------- Header: çıkış butonu ----------
-  const handleLogout = useCallback(() => {
-    Alert.alert(
-      'Çıkış yap',
-      'Hesabından çıkış yapmak istediğine emin misin?',
-      [
-        { text: 'Vazgeç', style: 'cancel' },
-        {
-          text: 'Çıkış yap',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            // navigate gerekmez — AppNavigator token null olduğunda Login'e yönlendirir.
-          },
-        },
-      ],
-    );
-  }, [logout]);
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={handleLogout}
-          style={styles.headerButton}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={styles.headerButtonIcon}>⚙️</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, handleLogout]);
-
   // ---------- Render yardımcıları ----------
   const renderItem = ({ item }: { item: Ticket }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, { backgroundColor: colors.card }]}
       onPress={() => navigation.navigate('TicketDetail', { id: String(item.id) })}
       activeOpacity={0.75}
     >
-      <Text style={styles.cardTitle}>{item.title}</Text>
-      <Text style={styles.cardDescription} numberOfLines={1}>
+      <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{item.title}</Text>
+      <Text style={[styles.cardDescription, { color: colors.textSecondary }]} numberOfLines={1}>
         {item.description}
       </Text>
       <View style={styles.badgeRow}>
@@ -158,38 +131,38 @@ export default function TicketsScreen({ navigation }: Props) {
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>Henüz talep yok</Text>
+      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz talep yok</Text>
     </View>
   );
 
   // ---------- İlk yükleme ----------
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator color="#14B8A6" size="large" />
-      </View>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={['top']}>
+        <ActivityIndicator color={colors.accent} size="large" />
+      </SafeAreaView>
     );
   }
 
   // ---------- Hata durumu ----------
   if (errorMessage) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>{errorMessage}</Text>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={['top']}>
+        <Text style={[styles.errorText]}>{errorMessage}</Text>
         <TouchableOpacity
-          style={styles.retryButton}
+          style={[styles.retryButton, { backgroundColor: colors.accent }]}
           onPress={() => fetchTickets()}
           activeOpacity={0.8}
         >
           <Text style={styles.retryButtonText}>Tekrar dene</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // ---------- Ana içerik ----------
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['top']}>
       <FlatList
         data={tickets}
         keyExtractor={(item) => String(item.id)}
@@ -204,31 +177,29 @@ export default function TicketsScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={() => fetchTickets({ refreshing: true })}
-            tintColor="#14B8A6"
-            colors={['#14B8A6']}
+            tintColor={colors.accent}
+            colors={[colors.accent]}
           />
         }
       />
 
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.accent, shadowColor: colors.accent }]}
         onPress={() => navigation.navigate('CreateTicket')}
         activeOpacity={0.8}
       >
         <Text style={styles.fabIcon}>+</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#121212',
   },
   centered: {
     flex: 1,
-    backgroundColor: '#121212',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
@@ -242,7 +213,6 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    backgroundColor: '#1E1E1E',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -250,13 +220,11 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontFamily: 'Manrope_700Bold',
-    color: '#FFFFFF',
     marginBottom: 6,
   },
   cardDescription: {
     fontSize: 14,
     fontFamily: 'Manrope_400Regular',
-    color: '#A0A0A0',
     marginBottom: 12,
   },
   badgeRow: {
@@ -278,7 +246,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyText: {
-    color: '#A0A0A0',
     fontSize: 16,
     fontFamily: 'Manrope_400Regular',
   },
@@ -290,7 +257,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#14B8A6',
+    backgroundColor: '#5c642a',
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 32,
@@ -302,35 +269,24 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 28,
+    bottom: 100,
     right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#14B8A6',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 6,
-    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
   },
   fabIcon: {
     color: '#FFFFFF',
-    fontSize: 28,
+    fontSize: 20,
     fontFamily: 'Manrope_400Regular',
-    lineHeight: 32,
-  },
-  headerButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 4,
-  },
-  headerButtonIcon: {
-    fontSize: 22,
+    lineHeight: 24,
   },
 });
+
 

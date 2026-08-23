@@ -4,9 +4,17 @@ export type AuthStackParamList = {
   Register: undefined;
 };
 
+/** Bottom Tab sekmeleri */
+export type TabParamList = {
+  Tickets: undefined;
+  Profile: undefined;
+  AI: undefined;
+};
+
 /** Giriş yapmış kullanıcıya gösterilen ekranlar */
 export type AppStackParamList = {
-  Tickets: undefined;
+  /** Ana tab navigator'ı barındıran kök ekran */
+  MainTabs: undefined;
   TicketDetail: { id: string };
   CreateTicket: undefined;
 };
@@ -15,4 +23,6 @@ export type AppStackParamList = {
  * Tüm ekranları birleştiren tip — mevcut ekran dosyalarındaki
  * NativeStackScreenProps<RootStackParamList, '...'> kullanımını korur.
  */
-export type RootStackParamList = AuthStackParamList & AppStackParamList;
+export type RootStackParamList = AuthStackParamList & AppStackParamList & {
+  Tickets: undefined;
+};

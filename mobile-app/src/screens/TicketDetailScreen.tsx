@@ -9,8 +9,10 @@ import {
 } from 'react-native';
 import { AxiosError } from 'axios';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../types/navigation';
 import { Ticket, Priority, Status } from '../types/ticket';
+import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
 
 const PRIORITY_COLORS: Record<Priority, string> = {
@@ -26,7 +28,7 @@ const PRIORITY_LABELS: Record<Priority, string> = {
 };
 
 const STATUS_COLORS: Record<Status, string> = {
-  OPEN: '#14B8A6',
+  OPEN: '#7D8355',
   IN_PROGRESS: '#F59E0B',
   RESOLVED: '#22C55E',
   CLOSED: '#6B7280',
@@ -57,6 +59,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TicketDetail'>;
 
 export default function TicketDetailScreen({ route }: Props) {
   const { id } = route.params;
+  const { colors } = useTheme();
 
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -91,44 +94,44 @@ export default function TicketDetailScreen({ route }: Props) {
   // ---------- Yükleniyor ----------
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator color="#14B8A6" size="large" />
-      </View>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={['top']}>
+        <ActivityIndicator color={colors.accent} size="large" />
+      </SafeAreaView>
     );
   }
 
   // ---------- Bulunamadı (404) ----------
   if (isNotFound) {
     return (
-      <View style={styles.screen}>
+      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['top']}>
         <View style={styles.notFoundContainer}>
-          <Text style={styles.notFoundText}>Talep bulunamadı</Text>
+          <Text style={[styles.notFoundText, { color: colors.textSecondary }]}>Talep bulunamadı</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // ---------- Genel hata ----------
   if (errorMessage || !ticket) {
     return (
-      <View style={styles.centered}>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={['top']}>
         <Text style={styles.errorText}>{errorMessage ?? 'Talep yüklenemedi.'}</Text>
         <TouchableOpacity
-          style={styles.retryButton}
+          style={[styles.retryButton, { backgroundColor: colors.accent }]}
           onPress={fetchTicket}
           activeOpacity={0.8}
         >
           <Text style={styles.retryButtonText}>Tekrar dene</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // ---------- Başarılı ----------
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>{ticket.title}</Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>{ticket.title}</Text>
 
         <View style={styles.badgeRow}>
           <View style={[styles.badge, { backgroundColor: PRIORITY_COLORS[ticket.priority] + '33' }]}>
@@ -144,31 +147,29 @@ export default function TicketDetailScreen({ route }: Props) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Açıklama</Text>
-          <View style={styles.card}>
-            <Text style={styles.descriptionText}>{ticket.description}</Text>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Açıklama</Text>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
+            <Text style={[styles.descriptionText, { color: colors.textPrimary }]}>{ticket.description}</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Oluşturulma Tarihi</Text>
-          <View style={styles.card}>
-            <Text style={styles.dateText}>{formatDate(ticket.createdAt)}</Text>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Oluşturulma Tarihi</Text>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
+            <Text style={[styles.dateText, { color: colors.textPrimary }]}>{formatDate(ticket.createdAt)}</Text>
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#121212',
   },
   centered: {
     flex: 1,
-    backgroundColor: '#121212',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
@@ -180,7 +181,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontFamily: 'Manrope_700Bold',
-    color: '#FFFFFF',
     marginBottom: 16,
     lineHeight: 34,
   },
@@ -204,26 +204,22 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 12,
     fontFamily: 'Manrope_600SemiBold',
-    color: '#A0A0A0',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 8,
   },
   card: {
-    backgroundColor: '#1E1E1E',
     borderRadius: 12,
     padding: 16,
   },
   descriptionText: {
     fontSize: 15,
     fontFamily: 'Manrope_400Regular',
-    color: '#FFFFFF',
     lineHeight: 24,
   },
   dateText: {
     fontSize: 15,
     fontFamily: 'Manrope_400Regular',
-    color: '#FFFFFF',
   },
   errorText: {
     color: '#F87171',
@@ -233,7 +229,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#14B8A6',
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 32,
@@ -249,9 +244,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   notFoundText: {
-    color: '#A0A0A0',
     fontSize: 16,
     fontFamily: 'Manrope_400Regular',
   },
 });
-
