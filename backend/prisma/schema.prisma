@@ -43,7 +43,8 @@ model User {
   email        String   @unique
   passwordHash String
   role         Role     @default(USER)
-  createdAt    DateTime @default(now())
+  createdAt           DateTime  @default(now())
+  passwordChangedAt   DateTime?
 
   tickets      Ticket[]
 

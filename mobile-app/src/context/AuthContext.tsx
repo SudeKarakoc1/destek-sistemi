@@ -93,6 +93,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  // ---------- updateProfile ----------
+  const updateProfile = async (data: { name?: string; email?: string }): Promise<void> => {
+    try {
+      const response = await api.patch<User>('/auth/me', data);
+      setUser(response.data);
+    } catch (error: unknown) {
+      console.error('[AuthContext] Profil güncelleme başarısız:', error);
+      throw error;
+    }
+  };
+
+  // ---------- changePassword ----------
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+    try {
+      await api.patch('/auth/me/password', { currentPassword, newPassword });
+      // Backend, şifre değişince eski token'ı geçersiz kılıyor — bu yüzden
+      // kullanıcıyı otomatik çıkış yaptırıp yeniden giriş yapmaya yönlendiriyoruz.
+      await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
+      setToken(null);
+      setUser(null);
+    } catch (error: unknown) {
+      console.error('[AuthContext] Şifre değiştirme başarısız:', error);
+      throw error;
+    }
+  };
+
   // ---------- logout ----------
   const logout = async (): Promise<void> => {
     try {
@@ -106,7 +132,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout, updateProfile, changePassword }}>
       {children}
     </AuthContext.Provider>
   );

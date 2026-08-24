@@ -1,8 +1,11 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateMeDto } from './dto/update-me.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { GetUser, type AuthUser } from '../common/decorators/get-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -36,5 +39,28 @@ export class AuthController {
   @Get('me')
   getMe(@Request() req: { user: Record<string, unknown> }) {
     return req.user;
+  }
+
+  /**
+   * PATCH /auth/me
+   * Header: Authorization: Bearer <token>
+   * Body: { name?, email? }
+   */
+  @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  updateMe(@GetUser() user: AuthUser, @Body() dto: UpdateMeDto) {
+    return this.authService.updateMe(user.id, dto);
+  }
+
+  /**
+   * PATCH /auth/me/password
+   * Header: Authorization: Bearer <token>
+   * Body: { currentPassword, newPassword }
+   */
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/password')
+  @HttpCode(HttpStatus.OK)
+  changePassword(@GetUser() user: AuthUser, @Body() dto: ChangePasswordDto) {
+    return this.authService.changePassword(user.id, dto);
   }
 }

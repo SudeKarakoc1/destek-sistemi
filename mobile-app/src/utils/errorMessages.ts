@@ -1,9 +1,13 @@
 /** Backend'den gelen bilinen İngilizce hata mesajlarının Türkçe karşılıkları */
 const ERROR_TRANSLATIONS: Record<string, string> = {
-  'password must be longer than or equal to 6 characters': 'Şifre en az 6 karakter olmalı.',
+  'currentPassword should not be empty': 'Mevcut şifre boş bırakılamaz.',
   'email must be an email': 'Lütfen geçerli bir email adresi girin.',
-  'name should not be empty': 'Ad Soyad boş bırakılamaz.',
   'email should not be empty': 'Email boş bırakılamaz.',
+  'name must be longer than or equal to 2 characters': 'Ad Soyad en az 2 karakter olmalı.',
+  'name should not be empty': 'Ad Soyad boş bırakılamaz.',
+  'newPassword must be longer than or equal to 6 characters': 'Yeni şifre en az 6 karakter olmalı.',
+  'newPassword should not be empty': 'Yeni şifre boş bırakılamaz.',
+  'password must be longer than or equal to 6 characters': 'Şifre en az 6 karakter olmalı.',
   'password should not be empty': 'Şifre boş bırakılamaz.',
 };
 

@@ -7,6 +7,7 @@ export interface JwtPayload {
   sub: number;   // user id
   email: string;
   role: string;
+  iat?: number;  // JWT otomatik ekler (saniye cinsinden Unix timestamp)
 }
 
 @Injectable()
@@ -22,13 +23,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: JwtPayload) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, passwordChangedAt: true },
     });
 
     if (!user) {
       throw new UnauthorizedException('Kullanıcı bulunamadı');
     }
 
-    return user; // req.user olarak inject edilir
+    // Şifre değiştirildikten sonra üretilmiş eski token'ları geçersiz kıl
+    if (user.passwordChangedAt && payload.iat) {
+      const tokenIssuedAt = new Date(payload.iat * 1000);
+      if (tokenIssuedAt < user.passwordChangedAt) {
+        throw new UnauthorizedException('Oturum süresi doldu, lütfen tekrar giriş yapın');
+      }
+    }
+
+    // passwordChangedAt client'a gitmesin
+    const { passwordChangedAt: _omit, ...safeUser } = user;
+    return safeUser; // req.user olarak inject edilir
   }
 }
