@@ -149,4 +149,18 @@ Sadece şu anahtarları içeren geçerli JSON döndür, başka hiçbir şey ekle
       return fallback;
     }
   }
+
+  /**
+   * Ticket başlığı ve açıklamasından kısa Türkçe özet üretir.
+   * Hata yönetimi generateCompletion tarafından yapılır (InternalServerErrorException).
+   */
+  async summarizeTicket(title: string, description: string): Promise<string> {
+    const prompt = `Aşağıdaki IT destek talebini Türkçe olarak 2-3 cümleyle özetle. \
+Teknik detayları koru, sade ve anlaşılır bir dil kullan. Yalnızca özet metnini yaz, başka bir şey ekleme.
+
+Başlık: ${title}
+Açıklama: ${description}`;
+
+    return this.generateCompletion(prompt);
+  }
 }
