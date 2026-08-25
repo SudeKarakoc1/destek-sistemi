@@ -65,6 +65,7 @@ model Ticket {
   category    String
   priority    Priority     @default(MEDIUM)
   aiSummary   String?      @db.Text
+  aiSolution  String?      @db.Text
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 

@@ -163,4 +163,29 @@ Açıklama: ${description}`;
 
     return this.generateCompletion(prompt);
   }
+
+  /**
+   * Ticket başlığı, açıklaması ve kategorisine göre admin için adım adım
+   * Türkçe çözüm önerisi üretir.
+   * Hata yönetimi generateCompletion tarafından yapılır (InternalServerErrorException).
+   */
+  async suggestSolution(
+    title: string,
+    description: string,
+    category: string,
+  ): Promise<string> {
+    const prompt = `Sen bir IT destek uzmanısın. Aşağıdaki destek talebini incele ve bu talebi çözecek adminin \
+uygulayacağı adımları Türkçe olarak yaz.
+
+Kategori: ${category}
+Başlık: ${title}
+Açıklama: ${description}
+
+Gereksinimlerin:
+- 3 ile 5 arasında numaralandırılmış adım yaz (1. ... 2. ... formatında düz metin).
+- Teknik detay içerebilir, hedef kitle son kullanıcı değil admindir.
+- Markdown, JSON veya başka format kullanma; yalnızca numaralı adım listesini yaz.`;
+
+    return this.generateCompletion(prompt);
+  }
 }

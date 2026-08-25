@@ -84,4 +84,41 @@ export class AiController {
       data: { aiSummary },
     });
   }
+
+  /**
+   * POST /tickets/:id/ai-solution
+   * Ticket için AI çözüm önerisi üretir ve kaydeder.
+   * Sadece ADMIN rolü erişebilir. Öneri zaten mevcutsa OpenAI çağrılmaz.
+   */
+  @Post(':id/ai-solution')
+  @HttpCode(HttpStatus.OK)
+  async solve(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: AuthUser,
+  ) {
+    if (user.role !== Role.ADMIN) {
+      throw new ForbiddenException('Bu işlem yalnızca adminler tarafından yapılabilir');
+    }
+
+    const ticket = await this.prisma.ticket.findUnique({ where: { id } });
+    if (!ticket) {
+      throw new NotFoundException(`Ticket #${id} bulunamadı`);
+    }
+
+    // Öneri zaten varsa OpenAI'ye istek atma
+    if (ticket.aiSolution) {
+      return ticket;
+    }
+
+    const aiSolution = await this.aiService.suggestSolution(
+      ticket.title,
+      ticket.description,
+      ticket.category,
+    );
+
+    return this.prisma.ticket.update({
+      where: { id },
+      data: { aiSolution },
+    });
+  }
 }
