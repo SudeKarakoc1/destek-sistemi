@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthStackParamList, AppStackParamList } from '../types/navigation';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import TicketDetailScreen from '../screens/TicketDetailScreen';
@@ -14,12 +15,17 @@ import TabNavigator from './TabNavigator';
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 
-const SHARED_SCREEN_OPTIONS = {
-  headerTitleStyle: { fontFamily: 'Manrope_700Bold' },
-} as const;
 
 export default function AppNavigator() {
   const { isLoading, token } = useAuth();
+  const { colors } = useTheme();
+
+  const sharedScreenOptions = {
+    headerTitleStyle: { fontFamily: 'Manrope_700Bold' as const },
+    headerStyle: { backgroundColor: colors.card },
+    headerTintColor: colors.textPrimary,
+    headerShadowVisible: false,
+  };
 
   // Uygulama açılışında AsyncStorage'dan token kontrol edilirken loading göster
   if (isLoading) {
@@ -35,7 +41,7 @@ export default function AppNavigator() {
     return (
       <AuthStack.Navigator
         initialRouteName="Login"
-        screenOptions={SHARED_SCREEN_OPTIONS}
+        screenOptions={sharedScreenOptions}
       >
         <AuthStack.Screen name="Login" component={LoginScreen} />
         <AuthStack.Screen name="Register" component={RegisterScreen} />
@@ -49,7 +55,7 @@ export default function AppNavigator() {
   return (
     <AppStack.Navigator
       initialRouteName="MainTabs"
-      screenOptions={SHARED_SCREEN_OPTIONS}
+      screenOptions={sharedScreenOptions}
     >
       <AppStack.Screen
         name="MainTabs"
