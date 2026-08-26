@@ -11,4 +11,5 @@ export interface Ticket {
   priority: Priority;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
+  aiSolution?: string | null;
 }

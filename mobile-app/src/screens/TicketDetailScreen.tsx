@@ -159,6 +159,19 @@ export default function TicketDetailScreen({ route }: Props) {
             <Text style={[styles.dateText, { color: colors.textPrimary }]}>{formatDate(ticket.createdAt)}</Text>
           </View>
         </View>
+
+        {ticket.aiSolution && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+              ✨ Önerilen Çözüm
+            </Text>
+            <View style={[styles.card, { backgroundColor: colors.card }]}>
+              <Text style={[styles.descriptionText, { color: colors.textPrimary }]}>
+                {ticket.aiSolution}
+              </Text>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
