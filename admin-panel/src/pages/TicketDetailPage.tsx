@@ -15,6 +15,8 @@ interface TicketDetail {
     name: string;
     email: string;
   };
+  aiSummary?: string | null;
+  aiSolution?: string | null;
 }
 
 const STATUS_OPTIONS = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'] as const;
@@ -45,6 +47,11 @@ export default function TicketDetailPage() {
   const [updating, setUpdating] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState('');
   const [updateError, setUpdateError] = useState('');
+
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState('');
+  const [solutionLoading, setSolutionLoading] = useState(false);
+  const [solutionError, setSolutionError] = useState('');
 
   // ─── İlk yükleme ─────────────────────────────────────────────────
   useEffect(() => {
@@ -89,6 +96,46 @@ export default function TicketDetailPage() {
     }
   };
 
+  // ─── AI özet ─────────────────────────────────────────────────────
+  const handleGenerateSummary = async () => {
+    setSummaryError('');
+    setSummaryLoading(true);
+
+    try {
+      const res = await api.post<TicketDetail>(`/tickets/${id}/ai-summary`);
+      setTicket(res.data);
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 403) {
+        setSummaryError('Bu işlem için yetkiniz yok. Sadece adminler özet oluşturabilir.');
+      } else {
+        setSummaryError('Özet oluşturulurken bir hata oluştu.');
+      }
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
+  // ─── AI çözüm önerisi ────────────────────────────────────────────
+  const handleGenerateSolution = async () => {
+    setSolutionError('');
+    setSolutionLoading(true);
+
+    try {
+      const res = await api.post<TicketDetail>(`/tickets/${id}/ai-solution`);
+      setTicket(res.data);
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 403) {
+        setSolutionError('Bu işlem için yetkiniz yok. Sadece adminler çözüm önerisi oluşturabilir.');
+      } else {
+        setSolutionError('Çözüm önerisi oluşturulurken bir hata oluştu.');
+      }
+    } finally {
+      setSolutionLoading(false);
+    }
+  };
+
   // ─── Render ──────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50">
@@ -104,7 +151,7 @@ export default function TicketDetailPage() {
         </Link>
       </header>
 
-      <main className="px-8 py-8 max-w-2xl">
+      <main className="px-8 py-8 max-w-[1600px]">
         {loading && (
           <p className="text-sm text-gray-400 text-center py-12">Yükleniyor...</p>
         )}
@@ -116,7 +163,9 @@ export default function TicketDetailPage() {
         )}
 
         {!loading && !error && ticket && (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+            <div className="space-y-4">
 
             {/* Ticket bilgileri */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-8 space-y-6">
@@ -232,6 +281,66 @@ export default function TicketDetailPage() {
                 )}
               </div>
             </div>
+
+            </div>{/* /lg:col-span-2 */}
+
+            <div className="lg:sticky lg:top-8">
+            {/* AI Destek Araçları */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+              <div className="px-8 py-5 border-b border-gray-100">
+                <h2 className="text-sm font-semibold text-gray-900">AI Destek Araçları</h2>
+              </div>
+              <div className="px-8 py-5 space-y-4">
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleGenerateSummary}
+                    disabled={summaryLoading}
+                    className="bg-[#5c642a] text-white text-base px-4 py-2 rounded-lg hover:bg-[#4a5022] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    {summaryLoading ? 'Oluşturuluyor...' : 'Özet Çıkar'}
+                  </button>
+
+                  <button
+                    onClick={handleGenerateSolution}
+                    disabled={solutionLoading}
+                    className="bg-[#5c642a] text-white text-base px-4 py-2 rounded-lg hover:bg-[#4a5022] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    {solutionLoading ? 'Oluşturuluyor...' : 'Çözüm Öner'}
+                  </button>
+                </div>
+
+                {summaryError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">
+                    {summaryError}
+                  </div>
+                )}
+
+                {solutionError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">
+                    {solutionError}
+                  </div>
+                )}
+
+                {ticket.aiSummary && (
+                  <div>
+                    <span className="text-xs text-gray-500">Özet</span>
+                    <div className="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-base text-gray-700 whitespace-pre-wrap mt-1">
+                      {ticket.aiSummary}
+                    </div>
+                  </div>
+                )}
+
+                {ticket.aiSolution && (
+                  <div>
+                    <span className="text-xs text-gray-500">Çözüm Önerisi</span>
+                    <div className="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-base text-gray-700 whitespace-pre-wrap mt-1">
+                      {ticket.aiSolution}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            </div>{/* /lg:sticky */}
 
           </div>
         )}
