@@ -29,10 +29,9 @@ const statusColor: Record<string, string> = {
 };
 
 const priorityColor: Record<string, string> = {
-  LOW:      'bg-gray-100 text-gray-500',
-  MEDIUM:   'bg-gray-200 text-gray-700',
-  HIGH:     'bg-gray-700 text-gray-100',
-  CRITICAL: 'bg-gray-900 text-white',
+  LOW:    'bg-gray-100 text-gray-500',
+  MEDIUM: 'bg-gray-200 text-gray-700',
+  HIGH:   'bg-gray-700 text-gray-100',
 };
 
 export default function TicketDetailPage() {
