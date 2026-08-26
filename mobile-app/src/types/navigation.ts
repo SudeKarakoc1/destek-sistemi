@@ -1,3 +1,6 @@
+import { NavigatorScreenParams } from '@react-navigation/native';
+import { Priority } from './ticket';
+
 /** Giriş yapılmamış kullanıcıya gösterilen ekranlar */
 export type AuthStackParamList = {
   Login: undefined;
@@ -14,15 +17,18 @@ export type TabParamList = {
 /** Giriş yapmış kullanıcıya gösterilen ekranlar */
 export type AppStackParamList = {
   /** Ana tab navigator'ı barındıran kök ekran */
-  MainTabs: undefined;
+  MainTabs: NavigatorScreenParams<TabParamList>;
   TicketDetail: { id: string };
-  CreateTicket: undefined;
+  CreateTicket: {
+    prefillTitle?: string;
+    prefillDescription?: string;
+    prefillCategory?: string;
+    prefillPriority?: Priority;
+  } | undefined;
 };
 
 /**
  * Tüm ekranları birleştiren tip — mevcut ekran dosyalarındaki
  * NativeStackScreenProps<RootStackParamList, '...'> kullanımını korur.
  */
-export type RootStackParamList = AuthStackParamList & AppStackParamList & {
-  Tickets: undefined;
-};
+export type RootStackParamList = AuthStackParamList & AppStackParamList;

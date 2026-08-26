@@ -36,17 +36,29 @@ const PRIORITY_OPTIONS: PriorityOption[] = [
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateTicket'>;
 
-export default function CreateTicketScreen({ navigation }: Props) {
+export default function CreateTicketScreen({ navigation, route }: Props) {
   const { colors } = useTheme();
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<Category>('Yazılım');
+  const prefill = route.params;
+
+  const [title, setTitle] = useState(prefill?.prefillTitle ?? '');
+  const [description, setDescription] = useState(prefill?.prefillDescription ?? '');
+  const [category, setCategory] = useState<Category>(
+    prefill?.prefillCategory && CATEGORIES.includes(prefill.prefillCategory as Category)
+      ? (prefill.prefillCategory as Category)
+      : 'Yazılım'
+  );
   const [customCategory, setCustomCategory] = useState('');
-  const [priority, setPriority] = useState<Priority>('MEDIUM');
+  const [priority, setPriority] = useState<Priority>(prefill?.prefillPriority ?? 'MEDIUM');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const [aiSuggested, setAiSuggested] = useState(
+    Boolean(prefill?.prefillCategory && prefill?.prefillPriority)
+  );
 
   const handleSubmit = async () => {
     if (!title.trim() || !description.trim()) {
@@ -73,7 +85,7 @@ export default function CreateTicketScreen({ navigation }: Props) {
       setSuccessMessage('Talep oluşturuldu ✓');
       // 900ms sonra Tickets ekranına dön (stack'te birikmemesi için navigate)
       setTimeout(() => {
-        navigation.navigate('Tickets');
+        navigation.navigate('MainTabs', { screen: 'Tickets' });
       }, 900);
     } catch (err: unknown) {
       console.error('[CreateTicketScreen] Talep oluşturulamadı:', err);
@@ -86,6 +98,35 @@ export default function CreateTicketScreen({ navigation }: Props) {
   };
 
   const isDisabled = isSubmitting || successMessage !== null;
+
+  const handleAiSuggest = async () => {
+    if (!title.trim() || !description.trim()) return;
+    setAiError('');
+    setAiSuggested(false);
+    setAiLoading(true);
+
+    try {
+      const res = await api.post<{ category: Category; priority: Priority }>(
+        '/tickets/ai/suggest',
+        { title: title.trim(), description: description.trim() }
+      );
+      if (CATEGORIES.includes(res.data.category)) {
+        setCategory(res.data.category);
+      } else {
+        setAiError('Öneri uygulanamadı.');
+        return;
+      }
+      setPriority(res.data.priority);
+      setAiSuggested(true);
+    } catch (err: unknown) {
+      console.error('[CreateTicketScreen] AI önerisi alınamadı:', err);
+      const axiosError = err as AxiosError<{ message?: string | string[] }>;
+      const raw = axiosError.response?.data?.message ?? 'AI önerisi alınamadı. Lütfen tekrar deneyin.';
+      setAiError(translateErrorMessage(raw));
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   // Temaya göre input border rengi
   const inputBorderColor = colors.card === '#F0EEE8' ? '#D0CEC8' : '#2E2E2E';
@@ -129,6 +170,34 @@ export default function CreateTicketScreen({ navigation }: Props) {
           editable={!isDisabled}
         />
 
+        {/* AI Öneri */}
+        <TouchableOpacity
+          style={[
+            styles.aiSuggestButton,
+            { backgroundColor: colors.card, borderColor: colors.accent },
+            (isDisabled || aiLoading || !title.trim() || !description.trim()) && styles.submitButtonDisabled,
+          ]}
+          onPress={handleAiSuggest}
+          activeOpacity={0.8}
+          disabled={isDisabled || aiLoading || !title.trim() || !description.trim()}
+        >
+          {aiLoading ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : (
+            <Text style={[styles.aiSuggestButtonText, { color: colors.accent }]}>✨ AI'dan öneri al</Text>
+          )}
+        </TouchableOpacity>
+
+        {aiError !== '' && (
+          <Text style={styles.errorText}>{aiError}</Text>
+        )}
+
+        {aiSuggested && aiError === '' && (
+          <Text style={[styles.aiHintText, { color: colors.textSecondary }]}>
+            ✨ AI önerisi uygulandı — kategori ve öncelik güncellendi, istersen değiştirebilirsin.
+          </Text>
+        )}
+
         {/* Kategori */}
         <Text style={[styles.label, { color: colors.textSecondary }]}>Kategori</Text>
         <View style={styles.chipGroup}>
@@ -142,7 +211,7 @@ export default function CreateTicketScreen({ navigation }: Props) {
                   { backgroundColor: colors.card, borderColor: chipInactiveColor },
                   selected && { backgroundColor: colors.accent, borderColor: colors.accent },
                 ]}
-                onPress={() => !isDisabled && setCategory(cat)}
+                onPress={() => { if (!isDisabled) { setCategory(cat); setAiSuggested(false); } }}
                 activeOpacity={0.75}
                 disabled={isDisabled}
               >
@@ -182,7 +251,7 @@ export default function CreateTicketScreen({ navigation }: Props) {
                     ? { backgroundColor: opt.color, borderColor: opt.color }
                     : { borderColor: opt.color },
                 ]}
-                onPress={() => !isDisabled && setPriority(opt.value)}
+                onPress={() => { if (!isDisabled) { setPriority(opt.value); setAiSuggested(false); } }}
                 activeOpacity={0.75}
                 disabled={isDisabled}
               >
@@ -326,5 +395,23 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Manrope_600SemiBold',
+  },
+  aiSuggestButton: {
+    borderWidth: 1.5,
+    borderRadius: 10,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  aiSuggestButtonText: {
+    fontSize: 15,
+    fontFamily: 'Manrope_600SemiBold',
+  },
+  aiHintText: {
+    fontSize: 12,
+    fontFamily: 'Manrope_400Regular',
+    marginBottom: 12,
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });
