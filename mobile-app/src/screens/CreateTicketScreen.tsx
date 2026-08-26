@@ -131,7 +131,10 @@ export default function CreateTicketScreen({ navigation, route }: Props) {
   // Temaya göre input border rengi
   const inputBorderColor = colors.card === '#F0EEE8' ? '#D0CEC8' : '#2E2E2E';
   // Seçilmemiş chip border/metin rengi
-  const chipInactiveColor = colors.card === '#F0EEE8' ? '#9CA3AF' : '#3E3E3E';
+  const chipInactiveColor = colors.card === '#F0EEE8' ? '#9CA3AF' : '#6B6B6B';
+  // Dark modda accent rengi border/metin olarak kullanıldığında soluk
+  // kaldığı için daha açık bir ton tercih ediyoruz
+  const aiAccentColor = colors.card === '#F0EEE8' ? colors.accent : '#8A9440';
 
   return (
     <KeyboardAvoidingView
@@ -174,7 +177,7 @@ export default function CreateTicketScreen({ navigation, route }: Props) {
         <TouchableOpacity
           style={[
             styles.aiSuggestButton,
-            { backgroundColor: colors.card, borderColor: colors.accent },
+            { backgroundColor: colors.card, borderColor: aiAccentColor },
             (isDisabled || aiLoading || !title.trim() || !description.trim()) && styles.submitButtonDisabled,
           ]}
           onPress={handleAiSuggest}
@@ -182,9 +185,9 @@ export default function CreateTicketScreen({ navigation, route }: Props) {
           disabled={isDisabled || aiLoading || !title.trim() || !description.trim()}
         >
           {aiLoading ? (
-            <ActivityIndicator color="#FFFFFF" size="small" />
+            <ActivityIndicator color={aiAccentColor} size="small" />
           ) : (
-            <Text style={[styles.aiSuggestButtonText, { color: colors.accent }]}>✨ AI'dan öneri al</Text>
+            <Text style={[styles.aiSuggestButtonText, { color: aiAccentColor }]}>✨ AI'dan öneri al</Text>
           )}
         </TouchableOpacity>
 

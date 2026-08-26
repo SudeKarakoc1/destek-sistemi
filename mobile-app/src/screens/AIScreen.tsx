@@ -52,6 +52,9 @@ export default function AIScreen() {
 
   // Temaya göre input border rengi (CreateTicketScreen ile aynı mantık)
   const inputBorderColor = colors.card === '#F0EEE8' ? '#D0CEC8' : '#2E2E2E';
+  // Dark modda accent rengi border/metin olarak kullanıldığında soluk
+  // kaldığı için daha açık bir ton tercih ediyoruz
+  const aiAccentColor = colors.card === '#F0EEE8' ? colors.accent : '#8A9440';
 
   const canSuggest = title.trim().length > 0 && description.trim().length > 0;
   const hasSuggestion = suggestedCategory !== null && suggestedPriority !== null;
@@ -143,7 +146,7 @@ export default function AIScreen() {
           <TouchableOpacity
             style={[
               styles.aiButton,
-              { backgroundColor: colors.card, borderColor: colors.accent },
+              { backgroundColor: colors.card, borderColor: aiAccentColor },
               (!canSuggest || aiLoading) && styles.buttonDisabled,
             ]}
             onPress={handleAiSuggest}
@@ -151,9 +154,9 @@ export default function AIScreen() {
             disabled={!canSuggest || aiLoading}
           >
             {aiLoading ? (
-              <ActivityIndicator color={colors.accent} size="small" />
+              <ActivityIndicator color={aiAccentColor} size="small" />
             ) : (
-              <Text style={[styles.aiButtonText, { color: colors.accent }]}>✨ AI'dan öneri al</Text>
+              <Text style={[styles.aiButtonText, { color: aiAccentColor }]}>✨ AI'dan öneri al</Text>
             )}
           </TouchableOpacity>
 
