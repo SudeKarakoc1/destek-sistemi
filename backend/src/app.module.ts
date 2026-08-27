@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { AiModule } from './ai/ai.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AiModule } from './ai/ai.module';
     AuthModule,
     TicketsModule,
     AiModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
