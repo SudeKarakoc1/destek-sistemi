@@ -13,3 +13,21 @@ export interface Ticket {
   updatedAt: string; // ISO date string
   aiSolution?: string | null;
 }
+
+export interface CommentAuthor {
+  id: number;
+  name: string;
+  email: string;
+  role: 'ADMIN' | 'USER';
+}
+
+export interface Comment {
+  id: number;
+  content: string;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  ticketId: number;
+  authorId: number;
+  author: CommentAuthor;
+}

@@ -14,6 +14,7 @@ import { RootStackParamList } from '../types/navigation';
 import { Ticket, Priority, Status } from '../types/ticket';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
+import CommentSection from '../components/CommentSection';
 
 const PRIORITY_COLORS: Record<Priority, string> = {
   LOW: '#6B7280',
@@ -130,9 +131,20 @@ export default function TicketDetailScreen({ route }: Props) {
   // ---------- Başarılı ----------
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content}>
+      {/*
+       * KeyboardAvoidingView buradan KALDIRILDI.
+       * CommentSection, kendi input bar'ını kendi KeyboardAvoidingView'ı ile yönetiyor.
+       * Böylece klavye açıldığında tüm ekran değil, sadece yorum input alanı kayıyor.
+       */}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Başlık */}
         <Text style={[styles.title, { color: colors.textPrimary }]}>{ticket.title}</Text>
 
+        {/* Durum + Öncelik rozetleri */}
         <View style={styles.badgeRow}>
           <View style={[styles.badge, { backgroundColor: PRIORITY_COLORS[ticket.priority] + '33' }]}>
             <Text style={[styles.badgeText, { color: PRIORITY_COLORS[ticket.priority] }]}>
@@ -146,6 +158,7 @@ export default function TicketDetailScreen({ route }: Props) {
           </View>
         </View>
 
+        {/* Açıklama */}
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Açıklama</Text>
           <View style={[styles.card, { backgroundColor: colors.card }]}>
@@ -153,6 +166,7 @@ export default function TicketDetailScreen({ route }: Props) {
           </View>
         </View>
 
+        {/* Oluşturulma Tarihi */}
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Oluşturulma Tarihi</Text>
           <View style={[styles.card, { backgroundColor: colors.card }]}>
@@ -160,6 +174,7 @@ export default function TicketDetailScreen({ route }: Props) {
           </View>
         </View>
 
+        {/* AI Çözüm Önerisi */}
         {ticket.aiSolution && (
           <View style={styles.section}>
             <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
@@ -172,6 +187,12 @@ export default function TicketDetailScreen({ route }: Props) {
             </View>
           </View>
         )}
+
+        {/* ── Yorumlar bölümü ── */}
+        <View style={styles.section}>
+          <CommentSection ticketId={ticket.id} />
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );
