@@ -60,9 +60,9 @@ PATCH  /tickets/:id     — Bilet güncelle                  [JWT gerekli]
 ### AI Entegrasyonu
 
 ```
-POST   /tickets/ai/suggest          — Bilet başlık/açıklamasına göre kategori ve öncelik önerisi
-POST   /tickets/:id/ai-summary      — Bilet için AI özeti üretir    [ADMIN]
-POST   /tickets/:id/ai-solution     — Bilet için AI çözüm önerisi   [ADMIN]
+POST   /tickets/ai/suggest          — Bilet başlık/açıklamasına göre kategori ve öncelik önerisi   [JWT gerekli]
+POST   /tickets/:id/ai-summary      — Bilet için AI özeti üretir    [JWT gerekli, ADMIN]
+POST   /tickets/:id/ai-solution     — Bilet için AI çözüm önerisi   [JWT gerekli, ADMIN]
 ```
 
 > **Not:** `[JWT gerekli]` olan endpoint'lerde `Authorization: Bearer <token>` header'ı gönderilmelidir.

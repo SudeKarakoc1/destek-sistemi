@@ -1,6 +1,6 @@
 # destek-sistemi
 
-AI destekli teknik destek talep takip sistemi. Kullanıcılar mobil uygulama üzerinden destek talebi oluşturup takip ederken, adminler web paneli üzerinden talepleri yönetir. OpenAI API entegrasyonu sayesinde sistem; talep oluşturma sırasında kategori ve öncelik önerisi sunar, admin panelinde talep özeti ve çözüm önerisi üretir — üretilen çözüm önerisi kullanıcının mobil ekranına da yansır.
+AI destekli teknik destek talep takip sistemi. Kullanıcılar mobil uygulama üzerinden destek talebi oluşturup takip ederken, adminler web paneli üzerinden talepleri yönetir. OpenAI API entegrasyonu sayesinde sistem; talep oluşturma sırasında kategori ve öncelik önerisi sunar, admin panelinde talep özeti ve çözüm önerisi üretir — üretilen çözüm önerisi kullanıcının mobil ekranına da yansır. Ayrıca her talep üzerinde admin ile kullanıcı arasında karşılıklı yorum/yazışma yapılabilir.
 
 ## Özellikler
 
@@ -8,6 +8,7 @@ AI destekli teknik destek talep takip sistemi. Kullanıcılar mobil uygulama üz
 - Kayıt ve JWT tabanlı giriş/çıkış
 - Talep oluşturma (AI destekli kategori & öncelik önerisi)
 - Talep listesi ve detay takibi
+- Kendi talebine yorum yazma ve admin yanıtlarını görüntüleme
 - Profil yönetimi
 - Light / Dark tema desteği
 
@@ -16,8 +17,9 @@ AI destekli teknik destek talep takip sistemi. Kullanıcılar mobil uygulama üz
 - Talep durumu güncelleme
 - AI ile talep özeti çıkarma
 - AI ile çözüm önerisi üretme (üretilen öneri mobilden de görüntülenebilir)
+- Her talebe yorum yazarak kullanıcıyla karşılıklı yazışma
 
-**AI Entegrasyonu (OpenAI GPT-4o mini)**
+## AI Entegrasyonu (OpenAI GPT-4o mini)
 - Talep başlık/açıklamasına göre kategori önerisi (mobil & admin panel)
 - Talep başlık/açıklamasına göre öncelik önerisi (mobil & admin panel)
 - Talep özeti üretme (yalnızca admin panelinden tetiklenir)
@@ -33,6 +35,8 @@ AI destekli teknik destek talep takip sistemi. Kullanıcılar mobil uygulama üz
 | **Mobil — Talep Listesi** | **Mobil — AI Destekli Talep Oluşturma** |
 | ![Mobil — AI ile Hızlı Talep](docs/screenshots/mobile-ai-screen.png) | ![Mobil — AI Çözüm Önerisi Görüntüleme](docs/screenshots/mobile-ticket-solution.png) |
 | **Mobil — AI ile Hızlı Talep** | **Mobil — AI Çözüm Önerisi Görüntüleme** |
+| ![Admin Panel — Yorumlar](docs/screenshots/admin-comments.png) | ![Mobil — Yorumlar](docs/screenshots/mobile-comments.png) |
+| **Admin Panel — Yorumlar** | **Mobil — Yorumlar** |
 
 ## Mimari
 
